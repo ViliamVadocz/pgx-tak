@@ -5,6 +5,9 @@ on: [push, pull_request]
 jobs:
   check:
     runs-on: ubuntu-latest
+    env:
+      JAX_ENABLE_X64: True
+      JAX_PLATFORMS: cpu
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
