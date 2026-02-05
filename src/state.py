@@ -4,6 +4,7 @@ import jax
 import jax.numpy as jnp
 from jax.experimental import checkify  # https://docs.jax.dev/en/latest/debugging/checkify_guide.html
 
+import zobrist
 from consts import DEFAULT_CAPS, DEFAULT_SIZE, DEFAULT_STONES, MAX_STACK_SIZE, check_size
 
 
@@ -14,6 +15,7 @@ class State(NamedTuple):
 
     white_to_move: jax.Array = jnp.bool(True)
     stacks: jax.Array = jnp.ones(DEFAULT_SIZE * DEFAULT_SIZE, dtype=jnp.uint64)
+    zobrist_hash: jax.Array = zobrist.BOARD_SIZE[DEFAULT_SIZE] ^ zobrist.WHITE_TO_MOVE
 
     # bitboards
     white_bb: jax.Array = jnp.uint64(0)
