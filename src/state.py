@@ -4,9 +4,9 @@ import jax
 import jax.numpy as jnp
 from jax.experimental import checkify  # https://docs.jax.dev/en/latest/debugging/checkify_guide.html
 
+import bitboard
 import zobrist
-from bitboard import mask_to_bb
-from consts import DEFAULT_CAPS, DEFAULT_SIZE, DEFAULT_STONES, MAX_STACK_SIZE, check_size
+from consts import BITBOARD_DTYPE, DEFAULT_CAPS, DEFAULT_SIZE, DEFAULT_STONES, MAX_STACK_SIZE, check_size
 
 
 class State(NamedTuple):
@@ -19,10 +19,10 @@ class State(NamedTuple):
     zobrist_hash: jax.Array = zobrist.BOARD_SIZE[DEFAULT_SIZE] ^ zobrist.WHITE_TO_MOVE
 
     # bitboards
-    white_bb: jax.Array = jnp.uint64(0)
-    black_bb: jax.Array = jnp.uint64(0)
-    road_bb: jax.Array = jnp.uint64(0)
-    noble_bb: jax.Array = jnp.uint64(0)
+    white_bb: jax.Array = BITBOARD_DTYPE(0)
+    black_bb: jax.Array = BITBOARD_DTYPE(0)
+    road_bb: jax.Array = BITBOARD_DTYPE(0)
+    noble_bb: jax.Array = BITBOARD_DTYPE(0)
 
     # reserves
     white_stones: jax.Array = jnp.uint8(DEFAULT_STONES)
@@ -65,8 +65,8 @@ def check_invariants(state: State) -> None:
     white = not_empty & ~black
 
     # Check bitboards consistent with reserves and stacks
-    checkify.check(state.white_bb == mask_to_bb(white), "incorrect white bitboard")
-    checkify.check(state.black_bb == mask_to_bb(black), "incorrect black bitboard")
+    checkify.check(state.white_bb == bitboard.mask_to_bb(white), "incorrect white bitboard")
+    checkify.check(state.black_bb == bitboard.mask_to_bb(black), "incorrect black bitboard")
     checkify.check(state.white_bb & state.black_bb == 0, "white and black bitboard overlap")
 
     any_color = state.white_bb | state.black_bb

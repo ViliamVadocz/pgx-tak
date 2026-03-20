@@ -2,6 +2,8 @@ import chex
 import jax
 import jax.numpy as jnp
 
+from consts import BITBOARD_DTYPE, BITBOARD_IINFO
+
 
 def bb_to_mask(bb: jax.Array) -> jax.Array:
     chex.assert_shape(bb, ())

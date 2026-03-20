@@ -1,6 +1,12 @@
+import jax.numpy as jnp
 from jax.experimental import checkify
 
-MAX_STACK_SIZE = 63  # number of bits in stack element - 1
+BITBOARD_DTYPE = jnp.uint64
+BITBOARD_IINFO = jnp.iinfo(BITBOARD_DTYPE)
+
+STACK_DTYPE = jnp.uint64
+STACK_IINFO = jnp.iinfo(STACK_DTYPE)
+MAX_STACK_SIZE = STACK_IINFO.bits - 1
 
 MIN_SIZE = 3
 MAX_SIZE = 8
