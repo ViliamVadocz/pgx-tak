@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 
 import bitboard
-from consts import BITBOARD_IINFO
+from consts import BITBOARD_IINFO, MAX_STACK_SIZE
 from state import State
 
 
@@ -48,6 +48,8 @@ def legal_action_mask(state: State) -> jax.Array:
         bit = 1 << index
         owned = my_bb & bit > 0
         is_cap = (state.white_caps | state.black_caps) & bit > 0
+        stack_size = MAX_STACK_SIZE - jax.lax.clz(state.stacks[index])
+
         left_up_mask = (BITBOARD_IINFO.max >> (index + 1)) << (index + 1)
         right_down_mask = (1 << index) - 1
         row_at_index = bitboard.row(n) << (row * n)
@@ -65,9 +67,34 @@ def legal_action_mask(state: State) -> jax.Array:
 
         hits = ray & state.noble_bb
 
-        distance = jax.lax.switch(direction, (lambda: ...,))  # TODO
+        hit_index = jax.lax.switch(
+            direction,
+            (
+                lambda: jax.lax.ctz(hits),  # left
+                lambda: jax.lax.ctz(hits),  # up
+                lambda: BITBOARD_IINFO.bits - jax.lax.clz(hits) - 1,  # right
+                lambda: BITBOARD_IINFO.bits - jax.lax.clz(hits) - 1,  # down
+            ),
+        )
+        distance = -1 + jax.lax.switch(
+            direction,
+            (
+                lambda: hit_index - index,  # left
+                lambda: (hit_index - index) / n,  # up
+                lambda: hit_index - index,  # right
+                lambda: (hit_index - index) / n,  # down
+            ),
+        )
 
-        return owned & ()
+        pattern_distance = jax.lax.population_count(pattern)
+
+        non_smash_within_dist = pattern_distance < distance
+        last_is_single = pattern  # TODO
+        smash = is_cap & last_is_single & (pattern_distance == distance)
+
+        # TODO check enough pieces in stack
+
+        return owned & (non_smash_within_dist | smash)
 
     # vmap over squares, patterns, and directions
     spreads = jax.vmap(
